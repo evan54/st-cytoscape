@@ -24,10 +24,20 @@ def cytoscape(
     user_panning_enabled=True,
     min_zoom=1e-50,
     max_zoom=1e50,
+    zoom=1,
+    pan=None,
     key=None,
+    debounce=250,
     on_change=None,
 ):
     """Creates a new instance of a Cytoscape.js graph.
+
+    On events that trigger a return value: 
+    * select unselect dragfree zoom pan 
+    * see https://js.cytoscape.org/#events for more details
+
+    Returned values are node_positions, pan, zoom, nodes selected, 
+    edges selected
 
     Parameters
     ----------
@@ -52,6 +62,13 @@ def cytoscape(
         Cf. https://js.cytoscape.org/#core/initialisation
     max_zoom: float
         Cf. https://js.cytoscape.org/#core/initialisation
+    zoom: float
+        Cf. https://js.cytoscape.org/#core/initialisation
+    pan: dict
+        Cf. https://js.cytoscape.org/#core/initialisation
+    debounce: float
+        This is not a cytoscape parameter - this is a parameter which debounces
+        the events that trigger a setComponentValue from streamlit.
     key: str or None
         An optional key that uniquely identifies this component. If this is
         None, and the component's arguments are changed, the component will
@@ -63,6 +80,9 @@ def cytoscape(
         A dictionary containing the list of the ids of selected nodes ("nodes"
         key) and the list of the ids of the selected edges ("edges" key)
     """
+
+    if pan is None:
+        pan = {"x": 0, "y": 0}
 
     default = {"nodes": [], "edges": []}
     for e in elements:
@@ -84,8 +104,11 @@ def cytoscape(
         userPanningEnabled=user_panning_enabled,
         minZoom=min_zoom,
         maxZoom=max_zoom,
+        zoom=zoom,
+        pan=pan,
         key=key,
         default=default,
+        debounce=debounce,
         on_change=on_change,
     )
     return component_value
@@ -95,9 +118,9 @@ if not _RELEASE:
     import streamlit as st
 
     elements = [
-        {"data": {"id": "X"}, "selected": True, "selectable": False},
-        {"data": {"id": "Y"}},
-        {"data": {"id": "Z"}},
+        {"data": {"id": "X"}, "position": {"x": 100, "y": 0}},
+        {"data": {"id": "Y"}, "position": {"x": 0, "y": 100}},
+        {"data": {"id": "Z"}, "position": {"x": 0, "y": 0}},
         {"data": {"source": "X", "target": "Y", "id": "X➞Y"}},
         {"data": {"source": "Z", "target": "Y", "id": "Z➞Y"}},
         {"data": {"source": "Z", "target": "X", "id": "Z➞X"}},
@@ -115,6 +138,27 @@ if not _RELEASE:
         },
     ]
 
-    selected = cytoscape(elements, stylesheet, key="graph")
+    zoom = st.slider('zoom', min_value=0.1, max_value=10., key='zoom')
+    xpan = st.slider('x', min_value=0., max_value=1000., key='xpan')
+    ypan = st.slider('y', min_value=0., max_value=1000., key='ypan')
+
+    def fun():
+        cy_data = st.session_state.graph
+        st.session_state['zoom'] = cy_data['zoom']
+        st.session_state['xpan'] = cy_data['pan']['x']
+        st.session_state['ypan'] = cy_data['pan']['y']
+
+    selected = cytoscape(
+        elements, 
+        stylesheet, 
+        zoom=zoom, 
+        layout={'name': "preset"},
+        pan={'x': xpan, 'y': ypan},
+        key="graph",
+        debounce=300,
+        on_change=fun,
+    )
 
     st.write(selected)
+    import pandas as pd
+    print(pd.Timestamp('now'))
