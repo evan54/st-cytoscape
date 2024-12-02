@@ -78,7 +78,6 @@ function onRender(event: Event): void {
     }).on('select unselect', function () {
       updateComponent(cy);
     });
-    updateComponent(cy);
   }
 
   Streamlit.setFrameHeight()
