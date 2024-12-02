@@ -17,6 +17,7 @@ let args = '';
 
 function updateComponent(cy: any) {
   Streamlit.setComponentValue({
+    'node-positions': cy.$('node').map((x: any) => x.position()),
     'nodes': cy.$('node:selected').map((x: any) => x['_private']['data']['id']),
     'edges': cy.$('edge:selected').map((x: any) => x['_private']['data']['id'])
   })
