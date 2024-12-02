@@ -47,7 +47,8 @@ st.markdown("**Selected edges**: %s" % (", ".join(selected["edges"])))
 
 ## Usage
 
-**cytoscape (elements,
+**cytoscape (
+    elements,
     stylesheet,
     width="100%",
     height="300px",
@@ -57,10 +58,14 @@ st.markdown("**Selected edges**: %s" % (", ".join(selected["edges"])))
     user_panning_enabled=True,
     min_zoom=1e-50,
     max_zoom=1e50,
-    key=None
+    zoom=1,
+    pan=None,
+    key=None,
+    debounce=250,
+    on_change=None,
 )**
 
-Embeds a Cytoscape.js graph and returns a dictionary containing the list of the ids of selected nodes ("nodes" key) and the list of the ids of the selected edges ("edges" key)
+Embeds a Cytoscape.js graph and returns a dictionary containing the list of the ids of selected nodes ("nodes" key) and the list of the ids of the selected edges ("edges" key), the current pan, zoom and node positions.
 
 ### Parameters
 
