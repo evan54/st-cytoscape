@@ -8,6 +8,8 @@ import cytoscape from 'cytoscape';
 import fcose from 'cytoscape-fcose';
 // @ts-ignore
 import klay from 'cytoscape-klay';
+// @ts-ignore
+import _ from 'lodash';
 
 cytoscape.use(fcose);
 cytoscape.use(klay);
@@ -18,6 +20,8 @@ let args = '';
 function updateComponent(cy: any) {
   Streamlit.setComponentValue({
     'node-positions': cy.$('node').map((x: any) => x.position()),
+    'zoom': cy.zoom(),
+    'pan': cy.pan(),
     'nodes': cy.$('node:selected').map((x: any) => x['_private']['data']['id']),
     'edges': cy.$('edge:selected').map((x: any) => x['_private']['data']['id'])
   })
@@ -32,6 +36,7 @@ function onRender(event: Event): void {
   // Get the RenderData from the event
   const data = (event as CustomEvent<RenderData>).detail
   let newArgs = JSON.stringify(data.args);
+
   if (!data.args["key"] || args !== newArgs) {
     args = newArgs;
 
@@ -76,12 +81,26 @@ function onRender(event: Event): void {
       userPanningEnabled: data.args["userPanningEnabled"],
       minZoom: data.args["minZoom"],
       maxZoom: data.args["maxZoom"],
-    }).on('select unselect dragfree', function () {
-      updateComponent(cy);
-    });
-  }
+    })
+
+    // not clear why this doesn't work during initialisation
+    cy.zoom(data.args["zoom"])
+    cy.pan(data.args["pan"])
+
+    if (!data.args["debounce"]) {
+        cy.on('select unselect dragfree zoom pan', function () {
+          updateComponent(cy);
+        });
+    } else {
+        cy.on('select unselect dragfree zoom pan', _.debounce(function () {
+          updateComponent(cy);
+        }, data.args["debounce"]));
+    }
+
+ }
 
   Streamlit.setFrameHeight()
+
 }
 
 // Attach our `onRender` handler to Streamlit's render event.
