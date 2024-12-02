@@ -115,5 +115,4 @@ if not _RELEASE:
 
     selected = cytoscape(elements, stylesheet, key="graph")
 
-    st.markdown("**Selected nodes**: %s" % (", ".join(selected["nodes"])))
-    st.markdown("**Selected edges**: %s" % (", ".join(selected["edges"])))
+    st.write(selected)
