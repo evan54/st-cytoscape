@@ -19,7 +19,10 @@ let args = '';
 
 function updateComponent(cy: any) {
   Streamlit.setComponentValue({
-    'node-positions': cy.$('node').map((x: any) => x.position()),
+    'node-positions': cy.$('node').reduce((acc: any, x: any) => { 
+      acc[x['_private']['data']['id']] = x.position(); 
+      return acc; 
+    }, {}),
     'zoom': cy.zoom(),
     'pan': cy.pan(),
     'nodes': cy.$('node:selected').map((x: any) => x['_private']['data']['id']),
